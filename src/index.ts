@@ -18,12 +18,11 @@ const main = async () => {
             validate: false
         })
     })
-    await apolloServer.start().then(() => {
-        console.log(`🚀 Graphql server is running at port http://localhost:${process.env.SERVER_PORT}/graphql`)
-    });
+    await apolloServer.start()
     apolloServer.applyMiddleware({ app })
     app.listen(process.env.SERVER_PORT, () => {
         console.log(`🚀 Web server is running at port ${process.env.SERVER_PORT}`)
+        console.log(`🚀 Graphql server is running at port http://localhost:${process.env.SERVER_PORT}/graphql`)
     })
 
 }
