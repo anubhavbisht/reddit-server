@@ -11,6 +11,7 @@
   "author": "anubhav bisht",
   "license": "ISC",
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "@types/node": "^22.10.5",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
@@ -21,8 +22,12 @@
     "@mikro-orm/core": "^6.4.3",
     "@mikro-orm/migrations": "^6.4.3",
     "@mikro-orm/postgresql": "^6.4.3",
+    "apollo-server-express": "^3.13.0",
     "dotenv": "^16.4.7",
-    "pg": "^8.13.1"
+    "express": "^4.21.2",
+    "graphql": "^16.10.0",
+    "pg": "^8.13.1",
+    "type-graphql": "^2.0.0-rc.2"
   },
   "mikro-orm": {
     "useTsNode": true,
