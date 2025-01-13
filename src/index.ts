@@ -11,7 +11,7 @@ dotenv.config();
 const main = async () => {
     const orm = await MikroORM.init(mikroOrmConfig)
     await orm.getMigrator().up()
-    const app = express()
+    const app = express() as any
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
             resolvers: [TestResolver],
