@@ -1,22 +1,25 @@
+import "reflect-metadata"
 import { MikroORM } from "@mikro-orm/postgresql"
 import mikroOrmConfig from "./database/orm.config";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import dotenv from 'dotenv';
 import { buildSchema } from "type-graphql";
-import { TestResolver } from "./resolvers/test";
+import { PostResolver } from "./resolvers/post";
 
 dotenv.config();
 
 const main = async () => {
     const orm = await MikroORM.init(mikroOrmConfig)
     await orm.getMigrator().up()
+    // to do: remove any from express app
     const app = express() as any
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [TestResolver],
+            resolvers: [PostResolver],
             validate: false
-        })
+        }),
+        context: () => ({ em: orm.em.fork() })
     })
     await apolloServer.start()
     apolloServer.applyMiddleware({ app })
