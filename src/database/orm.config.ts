@@ -3,6 +3,7 @@ import { defineConfig } from '@mikro-orm/postgresql';
 import path from 'path';
 import dotenv from 'dotenv';
 import { __prod__ } from "../constants";
+import { User } from "./entities/User";
 
 dotenv.config();
 
@@ -11,7 +12,7 @@ export default defineConfig({
         path: path.join(__dirname, './migrations'),
         glob: '!(*.d).{js,ts}',
     },
-    entities: [Post],
+    entities: [Post, User],
     port: Number(process.env.DB_PORT),
     host: process.env.DB_HOST,
     dbName: process.env.DB_NAME,

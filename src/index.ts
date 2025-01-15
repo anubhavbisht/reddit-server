@@ -6,6 +6,7 @@ import { ApolloServer } from "apollo-server-express";
 import dotenv from 'dotenv';
 import { buildSchema } from "type-graphql";
 import { PostResolver } from "./resolvers/post";
+import { UserResolver } from "./resolvers/user";
 
 dotenv.config();
 
@@ -16,7 +17,7 @@ const main = async () => {
     const app = express() as any
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [PostResolver],
+            resolvers: [PostResolver, UserResolver],
             validate: false
         }),
         context: () => ({ em: orm.em.fork() })
