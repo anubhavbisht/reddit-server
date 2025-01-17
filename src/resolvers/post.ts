@@ -1,11 +1,11 @@
 import { Post } from "../database/entities/Post";
-import { OrmContext } from "../types";
+import { Context } from "../types";
 import { Query, Resolver, Ctx, Arg, Int, Mutation } from "type-graphql";
 
 @Resolver()
 export class PostResolver {
     @Query(() => [Post])
-    async posts(@Ctx() { em }: OrmContext): Promise<Post[]> {
+    async posts(@Ctx() { em }: Context): Promise<Post[]> {
         const posts = await em.findAll(Post, {}) as Post[]
         return posts
     }
@@ -13,7 +13,7 @@ export class PostResolver {
     @Query(() => Post, { nullable: true })
     async post(
         @Arg("id", () => Int) id: number,
-        @Ctx() { em }: OrmContext): Promise<Post | null> {
+        @Ctx() { em }: Context): Promise<Post | null> {
         const post = await em.findOne(Post, {
             id
         }) as Post
@@ -23,7 +23,7 @@ export class PostResolver {
     @Mutation(() => Post)
     async createPost(
         @Arg("title", () => String) title: string,
-        @Ctx() { em }: OrmContext): Promise<Post> {
+        @Ctx() { em }: Context): Promise<Post> {
         const newPost = new Post()
         newPost.title = title
         await em.persistAndFlush(newPost)
@@ -34,7 +34,7 @@ export class PostResolver {
     async updatePost(
         @Arg("id", () => Int) id: number,
         @Arg("title", () => String, { nullable: true }) title: string,
-        @Ctx() { em }: OrmContext): Promise<Post | null> {
+        @Ctx() { em }: Context): Promise<Post | null> {
         const post = await em.findOne(Post, {
             id
         }) as Post
@@ -51,7 +51,7 @@ export class PostResolver {
     @Mutation(() => Boolean)
     async deletePost(
         @Arg("id", () => Int) id: number,
-        @Ctx() { em }: OrmContext): Promise<boolean> {
+        @Ctx() { em }: Context): Promise<boolean> {
         await em.nativeDelete(Post, { id })
         return true
     }

@@ -1,6 +1,6 @@
-import { Resolver, Mutation, InputType, Field, Arg, Ctx, ObjectType } from "type-graphql";
+import { Resolver, Mutation, InputType, Field, Arg, Ctx, ObjectType, Query } from "type-graphql";
 import argon2 from 'argon2'
-import { OrmContext } from "src/types";
+import { Context } from "src/types";
 import { User } from "../database/entities/User";
 
 @InputType()
@@ -29,10 +29,22 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+    @Query(() => User, { nullable: true })
+    async me(
+        @Ctx() { em, req }: Context): Promise<User | null> {
+        if (!req.session?.userId) {
+            return null
+        }
+        const user = await em.findOne(User, {
+            id: req.session.userId
+        })
+        return user
+    }
+
     @Mutation(() => UserResponse)
     async register(
         @Arg('options', () => RegisterInput) options: RegisterInput,
-        @Ctx() { em }: OrmContext
+        @Ctx() { em, req }: Context
     ): Promise<UserResponse> {
         const { username, password } = options
         if (username.length <= 2) {
@@ -72,13 +84,14 @@ export class UserResolver {
                 }
             }
         }
+        req.session.userId = user.id
         return { user }
     }
 
     @Mutation(() => UserResponse)
     async login(
         @Arg('options', () => RegisterInput) options: RegisterInput,
-        @Ctx() { em }: OrmContext
+        @Ctx() { em, req }: Context
     ): Promise<UserResponse> {
         const { username, password } = options
         if (username.length <= 2) {
@@ -125,6 +138,7 @@ export class UserResolver {
                 ]
             }
         }
+        req.session.userId = user.id
         return { user }
     }
 }

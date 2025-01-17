@@ -13,6 +13,8 @@
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.1",
+    "@types/ioredis": "^4.28.10",
     "@types/node": "^22.10.5",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
@@ -25,9 +27,12 @@
     "@mikro-orm/postgresql": "^6.4.3",
     "apollo-server-express": "^3.13.0",
     "argon2": "^0.41.1",
+    "connect-redis": "^8.0.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-session": "^1.18.1",
     "graphql": "^16.10.0",
+    "ioredis": "^5.4.2",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",
     "type-graphql": "^2.0.0-rc.2"
