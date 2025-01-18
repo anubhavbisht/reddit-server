@@ -7,6 +7,7 @@
     "build": "tsc -w",
     "start": "node dist/index.js",
     "dev": "nodemon dist/index.js",
+    "dev:combined": "concurrently \"npm run build\" \"npm run dev\"",
     "migrate": "mikro-orm migration:create"
   },
   "author": "anubhav bisht",
@@ -16,6 +17,7 @@
     "@types/express-session": "^1.18.1",
     "@types/ioredis": "^4.28.10",
     "@types/node": "^22.10.5",
+    "concurrently": "^9.1.2",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"

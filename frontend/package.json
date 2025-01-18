@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "next",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "gqlgen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.0.2",
@@ -21,6 +22,11 @@
     "urql": "^4.2.1"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "5.0.3",
+    "@graphql-codegen/client-preset": "4.5.1",
+    "@graphql-codegen/typescript": "^4.1.2",
+    "@graphql-codegen/typescript-operations": "^4.4.0",
+    "@graphql-codegen/typescript-urql": "^4.0.0",
     "@types/cors": "^2.8.17",
     "@types/node": "^18.0.0",
     "@types/react": "^18.0.0",
