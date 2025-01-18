@@ -14,6 +14,7 @@ import { RedisStore } from "connect-redis";
 import { Context } from "./types";
 import { RequestWithSession } from "./types";
 import { Response } from "express";
+import cors from 'cors'
 
 dotenv.config();
 
@@ -41,7 +42,10 @@ const main = async () => {
 
     // to do: remove any from express app
     const app = express() as any
-
+    app.use(cors({
+        origin: 'http://localhost:3000',
+        credentials: true
+    }))
     const redisStore = new RedisStore({ client: redisClient, prefix: 'auth:' });
     app.use(
         session({
@@ -69,8 +73,8 @@ const main = async () => {
         },
     })
     await apolloServer.start()
-    apolloServer.applyMiddleware({ app })
-    
+    apolloServer.applyMiddleware({ app, cors: false })
+
     app.listen(process.env.SERVER_PORT, () => {
         console.log(`🚀 Web server is running at port ${process.env.SERVER_PORT}`)
         console.log(`🚀 Graphql server is running at port http://localhost:${process.env.SERVER_PORT}/graphql`)
