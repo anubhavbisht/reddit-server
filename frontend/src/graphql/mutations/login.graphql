@@ -5,7 +5,7 @@ mutation Login($options: RegisterInput!) {
       message
     }
     user{
-      username
+      ...RegularUser
     }
   }
 }
