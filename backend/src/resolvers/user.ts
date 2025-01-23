@@ -3,11 +3,15 @@ import argon2 from 'argon2'
 import { Context } from "src/types";
 import { User } from "../database/entities/User";
 import { COOKIE_NAME } from "../constants";
+import { validateRegister } from "../utils/validateRegister";
+import { validateLogin } from "../utils/validateLogin";
 
 @InputType()
-class RegisterInput {
+export class RegisterInput {
     @Field()
     username: string
+    @Field()
+    email: string
     @Field()
     password: string
 }
@@ -47,29 +51,16 @@ export class UserResolver {
         @Arg('options', () => RegisterInput) options: RegisterInput,
         @Ctx() { em, req }: Context
     ): Promise<UserResponse> {
-        const { username, password } = options
-        if (username.length <= 2) {
+        const { username, password, email } = options
+        const errors = validateRegister(options)
+        if (errors) {
             return {
-                errors: [
-                    {
-                        field: 'username',
-                        message: 'username length is less than 2'
-                    }
-                ]
-            }
-        }
-        if (password.length <= 2) {
-            return {
-                errors: [
-                    {
-                        field: 'password',
-                        message: 'password length is less than 2'
-                    }
-                ]
+                errors
             }
         }
         const user = new User()
         user.username = username
+        user.email = email
         user.password = await argon2.hash(password)
         try {
             await em.persistAndFlush(user)
@@ -91,39 +82,21 @@ export class UserResolver {
 
     @Mutation(() => UserResponse)
     async login(
-        @Arg('options', () => RegisterInput) options: RegisterInput,
+        @Arg('usernameOrEmail', () => String) usernameOrEmail: string,
+        @Arg('password', () => String) password: string,
         @Ctx() { em, req }: Context
     ): Promise<UserResponse> {
-        const { username, password } = options
-        if (username.length <= 2) {
-            return {
-                errors: [
-                    {
-                        field: 'username',
-                        message: 'username length is less than 2'
-                    }
-                ]
-            }
+        const errors = validateLogin(usernameOrEmail, password)
+        if (errors) {
+            return { errors };
         }
-        if (password.length <= 2) {
-            return {
-                errors: [
-                    {
-                        field: 'password',
-                        message: 'password length is less than 2'
-                    }
-                ]
-            }
-        }
-        const user = await em.findOne(User, {
-            username
-        }) as User
+        const user = await em.findOne(User, usernameOrEmail.includes('@') ? { email: usernameOrEmail } : { username: usernameOrEmail }) as User
         if (!user) {
             return {
                 errors: [
                     {
-                        field: 'username',
-                        message: "user does not exist"
+                        field: 'usernameOrEmail',
+                        message: "user with this username or emailId does not exist"
                     }
                 ]
             }
@@ -154,6 +127,13 @@ export class UserResolver {
                     resolve(true)
                 }
             })
+        })
+    }
+
+    @Mutation(() => Boolean)
+    forgotPassword(@Ctx() { req: _, res: __ }: Context): Promise<boolean> {
+        return new Promise((resolve) => {
+            resolve(true)
         })
     }
 }
