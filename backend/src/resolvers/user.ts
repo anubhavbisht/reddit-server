@@ -2,6 +2,7 @@ import { Resolver, Mutation, InputType, Field, Arg, Ctx, ObjectType, Query } fro
 import argon2 from 'argon2'
 import { Context } from "src/types";
 import { User } from "../database/entities/User";
+import { COOKIE_NAME } from "../constants";
 
 @InputType()
 class RegisterInput {
@@ -140,5 +141,19 @@ export class UserResolver {
         }
         req.session.userId = user.id
         return { user }
+    }
+
+    @Mutation(() => Boolean)
+    logout(@Ctx() { req, res }: Context): Promise<boolean> {
+        return new Promise((resolve) => {
+            req.session.destroy((err) => {
+                if (err) {
+                    resolve(false)
+                } else {
+                    res.clearCookie(COOKIE_NAME)
+                    resolve(true)
+                }
+            })
+        })
     }
 }

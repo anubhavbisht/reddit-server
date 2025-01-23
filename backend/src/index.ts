@@ -9,7 +9,7 @@ import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import Redis from "ioredis";
 import session from 'express-session'
-import { __prod__ } from "./constants";
+import { __prod__, COOKIE_NAME } from "./constants";
 import { RedisStore } from "connect-redis";
 import { Context } from "./types";
 import { RequestWithSession } from "./types";
@@ -49,7 +49,7 @@ const main = async () => {
     const redisStore = new RedisStore({ client: redisClient, prefix: 'auth:' });
     app.use(
         session({
-            name: 'auth-token',
+            name: COOKIE_NAME,
             store: redisStore,
             secret: process.env.SESSION_SECRET || 'session',
             resave: false,
