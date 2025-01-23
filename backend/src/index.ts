@@ -15,7 +15,6 @@ import { Context } from "./types";
 import { RequestWithSession } from "./types";
 import { Response } from "express";
 import cors from 'cors'
-import { sendTestEmail } from "./utils/sendMail";
 
 dotenv.config();
 
