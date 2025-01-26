@@ -9,7 +9,7 @@ import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import Redis from "ioredis";
 import session from 'express-session'
-import { __prod__, COOKIE_NAME } from "./constants";
+import { __prod__, COOKIE_NAME, REDIS_AUTH_PREFIX } from "./constants";
 import { RedisStore } from "connect-redis";
 import { Context } from "./types";
 import { RequestWithSession } from "./types";
@@ -46,7 +46,7 @@ const main = async () => {
         origin: 'http://localhost:3000',
         credentials: true
     }))
-    const redisStore = new RedisStore({ client: redisClient, prefix: 'auth:' });
+    const redisStore = new RedisStore({ client: redisClient, prefix: REDIS_AUTH_PREFIX });
     app.use(
         session({
             name: COOKIE_NAME,
@@ -69,7 +69,7 @@ const main = async () => {
             validate: false
         }),
         context: ({ req, res }): Context => {
-            return { em: orm.em.fork(), req: req as unknown as RequestWithSession, res: res as unknown as Response };
+            return { em: orm.em.fork(), req: req as unknown as RequestWithSession, res: res as unknown as Response, redis: redisClient };
         },
     })
     await apolloServer.start()

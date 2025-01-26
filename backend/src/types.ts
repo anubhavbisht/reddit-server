@@ -1,21 +1,22 @@
 import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core";
 import { SqlEntityManager, PostgreSqlDriver } from "@mikro-orm/postgresql";
 import { Request, Response } from "express";
-import { Session } from "express-session"; // Import the full Session interface
+import { Session } from "express-session";
+import Redis from "ioredis";
 
-// Extend the Session interface to include your custom properties
 declare module "express-session" {
     interface Session {
-        userId?: number; // Define the custom properties you want
+        userId?: number;
     }
 }
 
 export interface RequestWithSession extends Request {
-    session: Session;  // Use the full Session interface
+    session: Session;
 }
 
 export type Context = {
     em: SqlEntityManager<PostgreSqlDriver> & EntityManager<IDatabaseDriver<Connection>>;
-    req: RequestWithSession;  
+    req: RequestWithSession;
     res: Response;
+    redis: Redis;
 };

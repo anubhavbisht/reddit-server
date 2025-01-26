@@ -2,9 +2,12 @@ import { Resolver, Mutation, InputType, Field, Arg, Ctx, ObjectType, Query } fro
 import argon2 from 'argon2'
 import { Context } from "src/types";
 import { User } from "../database/entities/User";
-import { COOKIE_NAME } from "../constants";
+import { COOKIE_NAME, REDIS_PASSWORD_PREFIX } from "../constants";
 import { validateRegister } from "../utils/validateRegister";
 import { validateLogin } from "../utils/validateLogin";
+import { v4 } from "uuid";
+import { sendMailToUser } from "../utils/sendMail";
+import { validateEmail } from "../utils/validateEmail";
 
 @InputType()
 export class RegisterInput {
@@ -31,6 +34,16 @@ class UserResponse {
     @Field(() => User, { nullable: true })
     user?: User
 }
+
+@ObjectType()
+class ForgotPasswordResponse {
+    @Field(() => [FieldError], { nullable: true })
+    errors?: FieldError[]
+    @Field(() => Boolean, { nullable: true })
+    success?: boolean 
+}
+
+
 
 @Resolver()
 export class UserResolver {
@@ -65,12 +78,21 @@ export class UserResolver {
         try {
             await em.persistAndFlush(user)
         } catch (e) {
-            if (e.code === '23505') {
+            if (e.code === '23505' && e.constraint.includes('username')) {
                 return {
                     errors: [
                         {
                             field: 'username',
                             message: 'username is already taken'
+                        }
+                    ]
+                }
+            } else {
+                return {
+                    errors: [
+                        {
+                            field: 'email',
+                            message: 'a user already exists with this mail'
                         }
                     ]
                 }
@@ -130,10 +152,23 @@ export class UserResolver {
         })
     }
 
-    @Mutation(() => Boolean)
-    forgotPassword(@Ctx() { req: _, res: __ }: Context): Promise<boolean> {
-        return new Promise((resolve) => {
-            resolve(true)
+    @Mutation(() => ForgotPasswordResponse)
+    async forgotPassword(
+        @Arg('email', () => String) email: string,
+        @Ctx() { em, redis }: Context): Promise<ForgotPasswordResponse> {
+        const errors = validateEmail(email)
+        if (errors) {
+            return { errors };
+        }
+        const user = await em.findOne(User, {
+            email
         })
+        if (!user) {
+            return { success: true}
+        }
+        const token = v4()
+        await redis.set(`${REDIS_PASSWORD_PREFIX}${token}`, user.id, 'EX', 3600); // 1hr expiry for forgot password token
+        await sendMailToUser(email,`<a href="http://localhost:3000/reset-password/${token}">Reset Password</a>`)
+        return { success: true}
     }
 }
