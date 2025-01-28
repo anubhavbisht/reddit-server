@@ -8,6 +8,8 @@ import { validateLogin } from "../utils/validateLogin";
 import { v4 } from "uuid";
 import { sendMailToUser } from "../utils/sendMail";
 import { validateEmail } from "../utils/validateEmail";
+import { validatePassword } from "../utils/validatePassword";
+import { validateToken } from "../utils/validateToken";
 
 @InputType()
 export class RegisterInput {
@@ -40,7 +42,7 @@ class ForgotPasswordResponse {
     @Field(() => [FieldError], { nullable: true })
     errors?: FieldError[]
     @Field(() => Boolean, { nullable: true })
-    success?: boolean 
+    success?: boolean
 }
 
 
@@ -164,11 +166,44 @@ export class UserResolver {
             email
         })
         if (!user) {
-            return { success: true}
+            return { success: true }
         }
         const token = v4()
         await redis.set(`${REDIS_PASSWORD_PREFIX}${token}`, user.id, 'EX', 3600); // 1hr expiry for forgot password token
-        await sendMailToUser(email,`<a href="http://localhost:3000/reset-password/${token}">Reset Password</a>`)
-        return { success: true}
+        await sendMailToUser(email, `<a href="http://localhost:3000/reset-password/${token}">Reset Password</a>`)
+        return { success: true }
+    }
+
+    @Mutation(() => UserResponse)
+    async changePassword(
+        @Arg('newPassword', () => String) newPassword: string,
+        @Arg('token', () => String) token: string,
+        @Ctx() { req, em, redis }: Context): Promise<UserResponse> {
+        const errorsInPassword = validatePassword(newPassword)
+        if (errorsInPassword) {
+            return { errors: errorsInPassword };
+        }
+        const { userId, errorsInToken } = await validateToken(token, redis)
+        if (errorsInToken) {
+            return { errors: errorsInToken };
+        }
+        const user = await em.findOne(User, {
+            id: Number(userId)
+        })
+        if (!user) {
+            return {
+                errors: [
+                    {
+                        field: 'token',
+                        message: 'User no longer exists'
+                    }
+                ]
+            }
+        }
+        user.password = await argon2.hash(newPassword)
+        await em.persistAndFlush(user)
+        await redis.del(`${REDIS_PASSWORD_PREFIX}${token}`)
+        req.session.userId = user.id
+        return { user }
     }
 }
