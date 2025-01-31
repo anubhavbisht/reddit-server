@@ -1,4 +1,4 @@
-import { RegisterInput } from "../resolvers/user";
+import { RegisterInput } from "../user";
 
 export const validateRegister = (options: RegisterInput) => {
     const { username, password, email } = options;

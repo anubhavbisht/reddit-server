@@ -3,13 +3,13 @@ import argon2 from 'argon2'
 import { Context } from "../types";
 import { User } from "../database/entities/User";
 import { COOKIE_NAME, REDIS_PASSWORD_PREFIX } from "../constants";
-import { validateRegister } from "../utils/validateRegister";
-import { validateLogin } from "../utils/validateLogin";
+import { validateRegister } from "./validations/validateRegister";
+import { validateLogin } from "./validations/validateLogin";
 import { v4 } from "uuid";
 import { sendMailToUser } from "../utils/sendMail";
-import { validateEmail } from "../utils/validateEmail";
-import { validatePassword } from "../utils/validatePassword";
-import { validateToken } from "../utils/validateToken";
+import { validateEmail } from "./validations/validateEmail";
+import { validatePassword } from "./validations/validatePassword";
+import { validateToken } from "./validations/validateToken";
 
 @InputType()
 export class RegisterInput {

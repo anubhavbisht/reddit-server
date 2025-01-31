@@ -1,5 +1,5 @@
 import Redis from "ioredis";
-import { REDIS_PASSWORD_PREFIX } from "../constants";
+import { REDIS_PASSWORD_PREFIX } from "../../constants";
 
 export const validateToken = async (token: string, redis: Redis) => {
     const errors = [];
