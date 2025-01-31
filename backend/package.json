@@ -7,8 +7,7 @@
     "build": "tsc -w",
     "start": "node dist/index.js",
     "dev": "nodemon dist/index.js",
-    "dev:combined": "concurrently \"npm run build\" \"npm run dev\"",
-    "migrate": "mikro-orm migration:create"
+    "dev:combined": "concurrently \"npm run build\" \"npm run dev\""
   },
   "author": "anubhav bisht",
   "license": "ISC",
@@ -24,10 +23,6 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@mikro-orm/cli": "^6.4.3",
-    "@mikro-orm/core": "^6.4.3",
-    "@mikro-orm/migrations": "^6.4.3",
-    "@mikro-orm/postgresql": "^6.4.3",
     "@types/uuid": "^10.0.0",
     "apollo-server-express": "^3.13.0",
     "argon2": "^0.41.1",
@@ -41,13 +36,7 @@
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",
     "type-graphql": "^2.0.0-rc.2",
+    "typeorm": "^0.3.20",
     "uuid": "^11.0.5"
-  },
-  "mikro-orm": {
-    "useTsNode": true,
-    "configPaths": [
-      "./src/database/orm.config.ts",
-      "./dist/database/orm.config.js"
-    ]
   }
 }

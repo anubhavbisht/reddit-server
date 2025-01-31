@@ -1,6 +1,4 @@
 import "reflect-metadata"
-import { MikroORM } from "@mikro-orm/postgresql"
-import mikroOrmConfig from "./database/orm.config";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import dotenv from 'dotenv';
@@ -15,13 +13,13 @@ import { Context } from "./types";
 import { RequestWithSession } from "./types";
 import { Response } from "express";
 import cors from 'cors'
+import { AppDataSource } from "./database/orm.config";
 
 dotenv.config();
 
 const main = async () => {
-    const orm = await MikroORM.init(mikroOrmConfig)
-    await orm.getMigrator().up()
-
+    await AppDataSource.initialize()
+    console.log(`🛢 Database is set up ⚡`)
     const redisClient = new Redis({
         host: process.env.REDIS_HOST,
         port: Number(process.env.REDIS_PORT),
@@ -33,7 +31,7 @@ const main = async () => {
     });
 
     redisClient.on('connect', () => {
-        console.log('Connected to Redis');
+        console.log('💾 Connected to Redis');
     });
 
     redisClient.on('error', (err) => {
@@ -69,7 +67,7 @@ const main = async () => {
             validate: false
         }),
         context: ({ req, res }): Context => {
-            return { em: orm.em.fork(), req: req as unknown as RequestWithSession, res: res as unknown as Response, redis: redisClient };
+            return { req: req as unknown as RequestWithSession, res: res as unknown as Response, redis: redisClient };
         },
     })
     await apolloServer.start()
