@@ -1,16 +1,24 @@
-import { Context } from "src/types";
+import { Context, FieldError } from "../types";
 import { Post } from "../database/entities/Post";
-import { Query, Resolver, Arg, Int, Mutation, InputType, Field, Ctx, UseMiddleware } from "type-graphql";
+import { Query, Resolver, Arg, Int, Mutation, InputType, Field, Ctx, UseMiddleware, ObjectType } from "type-graphql";
 import { isUserAuthenticated } from "./middlewares/isAuth";
+import { validatePost } from "./validations/validateCreatePostInputs";
 
 @InputType()
-class PostInput {
+export class PostInput {
     @Field()
     text: string
     @Field()
     title: string
 }
 
+@ObjectType()
+class PostResponse {
+    @Field(() => [FieldError], { nullable: true })
+    errors?: FieldError[]
+    @Field(() => Post, { nullable: true })
+    post?: Post
+}
 
 @Resolver()
 export class PostResolver {
@@ -28,16 +36,22 @@ export class PostResolver {
         return post
     }
 
-    @Mutation(() => Post)
+    @Mutation(() => PostResponse)
     @UseMiddleware(isUserAuthenticated)
     async createPost(
         @Arg("options", () => PostInput) options: PostInput,
         @Ctx() { req }: Context
-    ): Promise<Post> {
+    ): Promise<PostResponse> {
+        const errors = validatePost(options)
+        if (errors) {
+            return { errors };
+        }
         const { text, title } = options
         const newPost = Post.create({ title, text, creatorId: req.session.userId });
         await newPost.save();
-        return newPost;
+        return {
+            post: newPost
+        };
     }
 
     @Mutation(() => Post, { nullable: true })

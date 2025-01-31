@@ -1,6 +1,6 @@
 import { Resolver, Mutation, InputType, Field, Arg, Ctx, ObjectType, Query } from "type-graphql";
 import argon2 from 'argon2'
-import { Context } from "../types";
+import { Context, FieldError } from "../types";
 import { User } from "../database/entities/User";
 import { COOKIE_NAME, REDIS_PASSWORD_PREFIX } from "../constants";
 import { validateRegister } from "./validations/validateRegister";
@@ -20,15 +20,6 @@ export class RegisterInput {
     @Field()
     password: string
 }
-
-@ObjectType()
-class FieldError {
-    @Field()
-    field: string
-    @Field()
-    message: string
-}
-
 @ObjectType()
 class UserResponse {
     @Field(() => [FieldError], { nullable: true })
