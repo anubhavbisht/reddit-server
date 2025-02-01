@@ -3,6 +3,7 @@ import { Post } from "../database/entities/Post";
 import { Query, Resolver, Arg, Int, Mutation, InputType, Field, Ctx, UseMiddleware, ObjectType } from "type-graphql";
 import { isUserAuthenticated } from "./middlewares/isAuth";
 import { validatePost } from "./validations/validateCreatePostInputs";
+import { AppDataSource } from "../database/orm.config";
 
 @InputType()
 export class PostInput {
@@ -23,9 +24,20 @@ class PostResponse {
 @Resolver()
 export class PostResolver {
     @Query(() => [Post])
-    async posts(): Promise<Post[]> {
-        const posts = await Post.find()
-        return posts
+    async posts(
+        @Arg("limit", () => Int) limit: number,
+        @Arg("cursor", () => String, { nullable: true }) cursor: string | null
+    ): Promise<Post[]> {
+        const realLimit = Math.min(limit, 50)
+        const queryBuilder = AppDataSource
+            .getRepository(Post)
+            .createQueryBuilder("post")
+            .orderBy('"createdAt"', "DESC")
+            .limit(realLimit)
+        if (cursor) {
+            queryBuilder.where('"createdAt" < :cursor', { cursor: new Date(parseInt(cursor)) })
+        }
+        return queryBuilder.getMany()
     }
 
     @Query(() => Post, { nullable: true })

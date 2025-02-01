@@ -1,8 +1,11 @@
-query Posts {
-  posts {
+query Posts($cursor: String, $limit: Int!) {
+  posts(cursor: $cursor, limit: $limit) {
     id
     title
     createdAt
     updatedAt
+    text
+    points
+    creatorId
   }
 }
