@@ -7,7 +7,7 @@ export const isUserAuthorized = () => {
     const router = useRouter()
     useEffect(() => {
         if(!fetching && !data?.me){
-            router.replace('/login')
+            router.replace('/login?next=' + router.pathname)
         }
     }, [data, fetching, router])
 }

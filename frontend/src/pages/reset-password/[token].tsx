@@ -12,10 +12,9 @@ import { useState } from "react";
 import NextLink from "next/link";
 
 interface resetPasswordProps {
-    token: string
 }
 
-const ResetPassword: NextPage<resetPasswordProps> = ({ token }) => {
+const ResetPassword: NextPage<resetPasswordProps> = () => {
     const router = useRouter()
     const [_, change] = useChangePasswordMutation()
     const [tokenError, setTokenError] = useState('')
@@ -24,6 +23,7 @@ const ResetPassword: NextPage<resetPasswordProps> = ({ token }) => {
             <Formik
                 initialValues={{ newPassword: '' }}
                 onSubmit={async (values, { setErrors }) => {
+                    const token = typeof router.query.token === 'string' ? router.query.token : ""
                     const result = await change({ token, newPassword: values.newPassword })
                     if (result.data?.changePassword.errors) {
                         const errors = mapError(result.data.changePassword.errors)
@@ -57,12 +57,6 @@ const ResetPassword: NextPage<resetPasswordProps> = ({ token }) => {
                 )}
             </Formik>
         </Wrapper>)
-}
-
-ResetPassword.getInitialProps = ({ query }) => {
-    return {
-        token: query.token as string
-    }
 }
 
 export default withUrqlClient(createClient)(ResetPassword)
