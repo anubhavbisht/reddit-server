@@ -2,6 +2,9 @@ query Post($postId: Int!) {
   post(id: $postId) {
     id
     title
+    text
+    points
+    creatorId
     createdAt
     updatedAt
   }

@@ -1,6 +1,6 @@
 import { Context, FieldError } from "../types";
 import { Post } from "../database/entities/Post";
-import { Query, Resolver, Arg, Int, Mutation, InputType, Field, Ctx, UseMiddleware, ObjectType } from "type-graphql";
+import { Query, Resolver, Arg, Int, Mutation, InputType, Field, Ctx, UseMiddleware, ObjectType, FieldResolver, Root } from "type-graphql";
 import { isUserAuthenticated } from "./middlewares/isAuth";
 import { validatePost } from "./validations/validateCreatePostInputs";
 import { AppDataSource } from "../database/orm.config";
@@ -21,8 +21,13 @@ class PostResponse {
     post?: Post
 }
 
-@Resolver()
+@Resolver(Post)
 export class PostResolver {
+    @FieldResolver(() => String)
+    textSnippet(@Root() post: Post): string {
+        return post.text.slice(0, 100) + '....'
+    }
+    
     @Query(() => [Post])
     async posts(
         @Arg("limit", () => Int) limit: number,
