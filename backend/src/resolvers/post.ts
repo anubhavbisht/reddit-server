@@ -126,4 +126,41 @@ export class PostResolver {
         await Post.delete(id);
         return true
     }
+
+    @Mutation(() => Boolean)
+    @UseMiddleware(isUserAuthenticated)
+    async vote(
+        @Arg("postId", () => Int) postId: number,
+        @Arg("vote", () => Int) vote: number,
+        @Ctx() { req }: Context
+    ): Promise<boolean> {
+        const { userId } = req.session
+        const isUpvote = vote !== -1
+        const voteValue = isUpvote ? 1 : -1
+        const queryRunner: QueryRunner = AppDataSource.createQueryRunner()
+        await queryRunner.connect()
+        await queryRunner.startTransaction()
+        try {
+            await queryRunner.query(`
+            insert into
+                "UserPostVotes" ("userId", "postId", "value")
+            values
+                ($1, $2, $3) 
+            `, [userId, postId, voteValue])
+            await queryRunner.query(`
+            update "Post"
+            set
+                "points" = "points" + $1
+            where
+                "id" = $2
+            `, [voteValue, postId])
+            await queryRunner.commitTransaction()
+        } catch (e) {
+            console.error("Transaction failed: ", e);
+            await queryRunner.rollbackTransaction()
+        } finally {
+            await queryRunner.release()
+        }
+        return true
+    }
 }

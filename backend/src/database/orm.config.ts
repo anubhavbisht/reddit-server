@@ -4,6 +4,7 @@ import { __prod__ } from "../constants";
 import dotenv from 'dotenv';
 import { User } from "./entities/User";
 import { Post } from "./entities/Post";
+import { UserPostVotes } from "./entities/UserPostVotes";
 
 dotenv.config();
 
@@ -16,5 +17,5 @@ export const AppDataSource = new DataSource({
     database: process.env.DB_NAME,
     synchronize: true,
     logging: !__prod__,
-    entities: [User, Post],
+    entities: [User, Post, UserPostVotes],
 });

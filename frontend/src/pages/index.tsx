@@ -39,6 +39,7 @@ const Index = () => {
               <Box key={p.id} p={5} shadow="md" borderWidth="1px">
                 <Heading fontSize="xl">{p.title}</Heading>
                 <Heading fontSize="md" color="blue.400">{convertToIST(p.createdAt)}</Heading>
+                <Heading fontSize="sm" color="purple.400">Posted by {p.creator.username}</Heading>
                 <Text mt="4">{p.textSnippet}</Text>
               </Box>
             ))
