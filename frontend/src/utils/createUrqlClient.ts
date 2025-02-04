@@ -1,5 +1,5 @@
-import { Exchange, fetchExchange } from "urql"
-import { cacheExchange, Cache, QueryInput } from '@urql/exchange-graphcache';
+import { Exchange, fetchExchange, stringifyVariables } from "urql"
+import { cacheExchange, Cache, QueryInput, Resolver } from '@urql/exchange-graphcache';
 import { LoginMutation, MeQuery, MeDocument, RegisterMutation, LogoutMutation } from "../graphql/generated/graphql"
 import { pipe, tap } from "wonka";
 import Router from "next/router";
@@ -7,6 +7,30 @@ import Router from "next/router";
 function improvedUpdateQuery<Result, Query>(cache: Cache, query: QueryInput, result: any, fn: (r: Result, q: Query) => Query) {
     return cache.updateQuery(query, data => fn(result, data as any) as any)
 }
+
+const cursorPagination = (): Resolver => {
+    return (_parent, fieldArgs, cache, info) => {
+        const { parentKey: entityKey, fieldName } = info;
+        const allFields = cache.inspectFields(entityKey);
+        const fieldInfos = allFields.filter((info) => info.fieldName === fieldName);
+
+        if (fieldInfos.length === 0) {
+            return undefined;
+        }
+
+        const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+        const isItInTheCache = cache.resolve(entityKey, fieldKey) 
+        info.partial = !isItInTheCache
+        let result: any[] = [];
+        fieldInfos.forEach((fi) => {
+            const data = cache.resolve(entityKey, fi.fieldKey) as string[]
+            if (data) {
+                result.push(...data)
+            }
+        });
+        return result;
+    };
+};
 
 const errorExchange: Exchange = ({ forward }) => (ops$) => {
     return pipe(
@@ -22,6 +46,11 @@ const errorExchange: Exchange = ({ forward }) => (ops$) => {
 export const createClient = (ssrExchange: any) => ({
     url: 'http://localhost:8000/graphql',
     exchanges: [cacheExchange({
+        resolvers: {
+            Query: {
+                posts: cursorPagination(),
+            },
+        },
         updates: {
             Mutation: {
                 login: (_result, args, cache, info) => {

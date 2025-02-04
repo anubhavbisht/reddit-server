@@ -5,12 +5,15 @@ import { convertToIST } from "../utils/dateFormatter";
 import { Layout } from "../components/Layout";
 import NextLink from "next/link";
 import { Box, Heading, Stack, Text, Flex, Button } from "@chakra-ui/react";
+import { useState } from "react";
 
 const Index = () => {
+  const [postVariables, setPostVariables] = useState({
+    limit: 10,
+    cursor: null as null | string
+  })
   const [{ data, fetching }] = usePostsQuery({
-    variables: {
-      limit: 10
-    }
+    variables: postVariables
   })
 
   if (!data && !fetching) {
@@ -41,7 +44,12 @@ const Index = () => {
             ))
           }
         </Stack>)}
-      {data ? <Flex><Button isLoading={fetching} m="auto" my="8">Load more</Button></Flex> : null}
+      {data ? <Flex><Button onClick={() => {
+        setPostVariables({
+          limit: postVariables.limit,
+          cursor: data?.posts[data.posts.length - 1]?.createdAt
+        })
+      }} isLoading={fetching} m="auto" my="8">Load more</Button></Flex> : null}
     </Layout>
   )
 };
