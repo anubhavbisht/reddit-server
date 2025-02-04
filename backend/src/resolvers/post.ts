@@ -4,6 +4,7 @@ import { Query, Resolver, Arg, Int, Mutation, InputType, Field, Ctx, UseMiddlewa
 import { isUserAuthenticated } from "./middlewares/isAuth";
 import { validatePost } from "./validations/validateCreatePostInputs";
 import { AppDataSource } from "../database/orm.config";
+import { QueryRunner } from "typeorm";
 
 @InputType()
 export class PostInput {
@@ -43,15 +44,33 @@ export class PostResolver {
     ): Promise<PaginatedPosts> {
         const realLimit = Math.min(limit, 50)
         const hasMoreLimit = realLimit + 1
-        const queryBuilder = AppDataSource
-            .getRepository(Post)
-            .createQueryBuilder("post")
-            .orderBy('"createdAt"', "DESC")
-            .limit(hasMoreLimit)
+        const queryRunner: QueryRunner = AppDataSource.createQueryRunner()
+        await queryRunner.connect()
+        const replacements: any[] = []
+        replacements.push(hasMoreLimit)
         if (cursor) {
-            queryBuilder.where('"createdAt" < :cursor', { cursor: new Date(parseInt(cursor)) })
+            replacements.push(new Date(parseInt(cursor)))
         }
-        const posts = await queryBuilder.getMany()
+        const postQuery = `
+        select
+            "Post".*,
+            json_build_object (
+                'id', "User"."id",
+                'email', "User"."email",
+                'username', "User"."username"
+            ) "creator"
+        from
+            "Post"
+            inner join "User" on "User"."id" = "Post"."creatorId"
+        ${cursor ? `where "Post"."createdAt" < $2` : ''}
+        order by
+            "Post"."createdAt" desc
+        limit
+            $1
+        `
+        const posts = await queryRunner.query(postQuery, replacements);
+
+        await queryRunner.release()
         return {
             posts: posts.slice(0, realLimit),
             hasMore: posts.length === hasMoreLimit
