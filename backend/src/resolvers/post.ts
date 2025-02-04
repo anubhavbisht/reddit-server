@@ -21,28 +21,41 @@ class PostResponse {
     post?: Post
 }
 
+@ObjectType()
+class PaginatedPosts {
+    @Field(() => [Post])
+    posts: Post[]
+    @Field(() => Boolean)
+    hasMore: boolean
+}
+
 @Resolver(Post)
 export class PostResolver {
     @FieldResolver(() => String)
     textSnippet(@Root() post: Post): string {
         return post.text.slice(0, 100) + '....'
     }
-    
-    @Query(() => [Post])
+
+    @Query(() => PaginatedPosts)
     async posts(
         @Arg("limit", () => Int) limit: number,
         @Arg("cursor", () => String, { nullable: true }) cursor: string | null
-    ): Promise<Post[]> {
+    ): Promise<PaginatedPosts> {
         const realLimit = Math.min(limit, 50)
+        const hasMoreLimit = realLimit + 1
         const queryBuilder = AppDataSource
             .getRepository(Post)
             .createQueryBuilder("post")
             .orderBy('"createdAt"', "DESC")
-            .limit(realLimit)
+            .limit(hasMoreLimit)
         if (cursor) {
             queryBuilder.where('"createdAt" < :cursor', { cursor: new Date(parseInt(cursor)) })
         }
-        return queryBuilder.getMany()
+        const posts = await queryBuilder.getMany()
+        return {
+            posts: posts.slice(0, realLimit),
+            hasMore: posts.length === hasMoreLimit
+        }
     }
 
     @Query(() => Post, { nullable: true })
