@@ -5,6 +5,7 @@ import { isUserAuthenticated } from "./middlewares/isAuth";
 import { validatePost } from "./validations/validateCreatePostInputs";
 import { AppDataSource } from "../database/orm.config";
 import { QueryRunner } from "typeorm";
+import { UserPostVotes } from "../database/entities/UserPostVotes";
 
 @InputType()
 export class PostInput {
@@ -137,23 +138,47 @@ export class PostResolver {
         const { userId } = req.session
         const isUpvote = vote !== -1
         const voteValue = isUpvote ? 1 : -1
+        const userPostVote = await UserPostVotes.findOne({
+            where: {
+                userId,
+                postId
+            }
+        })
+        if (userPostVote && userPostVote.votes === voteValue) {
+            return true
+        }
         const queryRunner: QueryRunner = AppDataSource.createQueryRunner()
         await queryRunner.connect()
         await queryRunner.startTransaction()
         try {
-            await queryRunner.query(`
-            insert into
-                "UserPostVotes" ("userId", "postId", "votes")
-            values
-                ($1, $2, $3) 
-            `, [userId, postId, voteValue])
-            await queryRunner.query(`
-            update "Post"
-            set
-                "points" = "points" + $1
-            where
-                "id" = $2
-            `, [voteValue, postId])
+            if (!userPostVote) {
+                await queryRunner.query(`
+                    insert into
+                        "UserPostVotes" ("userId", "postId", "votes")
+                    values
+                        ($1, $2, $3) 
+                    `, [userId, postId, voteValue])
+                await queryRunner.query(`
+                    update "Post"
+                    set
+                        "points" = "points" + $1
+                    where
+                        "id" = $2
+                    `, [voteValue, postId])
+            } else {
+                await queryRunner.query(`
+                    update "UserPostVotes" 
+                    set "votes" = $1
+                    where "postId" = $2 and "userId" = $3
+                    `, [voteValue, postId, userId])
+                await queryRunner.query(`
+                    update "Post"
+                    set
+                        "points" = "points" + $1
+                    where
+                        "id" = $2
+                    `, [2 * voteValue, postId])
+            }
             await queryRunner.commitTransaction()
         } catch (e) {
             console.error("Transaction failed: ", e);
