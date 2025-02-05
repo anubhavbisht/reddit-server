@@ -143,7 +143,7 @@ export class PostResolver {
         try {
             await queryRunner.query(`
             insert into
-                "UserPostVotes" ("userId", "postId", "value")
+                "UserPostVotes" ("userId", "postId", "votes")
             values
                 ($1, $2, $3) 
             `, [userId, postId, voteValue])

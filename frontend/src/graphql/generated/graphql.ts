@@ -157,6 +157,8 @@ export type UserResponse = {
 
 export type RegularErrorFragment = { __typename?: 'FieldError', field: string, message: string };
 
+export type RegularPostFragment = { __typename?: 'Post', title: string, textSnippet: string, text: string, points: number, id: number, createdAt: string, creatorId: number, creator: { __typename?: 'User', id: number, email: string, username: string } };
+
 export type RegularUserFragment = { __typename?: 'User', id: number, username: string };
 
 export type RegularUserResponseFragment = { __typename?: 'UserResponse', user?: { __typename?: 'User', id: number, username: string } | null, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null };
@@ -231,6 +233,22 @@ export type PostsQueryVariables = Exact<{
 
 export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPosts', hasMore: boolean, posts: Array<{ __typename?: 'Post', title: string, textSnippet: string, text: string, points: number, id: number, createdAt: string, creatorId: number, creator: { __typename?: 'User', id: number, email: string, username: string } }> } };
 
+export const RegularPostFragmentDoc = gql`
+    fragment RegularPost on Post {
+  title
+  textSnippet
+  text
+  points
+  id
+  createdAt
+  creatorId
+  creator {
+    id
+    email
+    username
+  }
+}
+    `;
 export const RegularUserFragmentDoc = gql`
     fragment RegularUser on User {
   id
@@ -372,23 +390,12 @@ export const PostsDocument = gql`
     query Posts($limit: Int!, $cursor: String) {
   posts(limit: $limit, cursor: $cursor) {
     posts {
-      title
-      textSnippet
-      text
-      points
-      id
-      createdAt
-      creatorId
-      creator {
-        id
-        email
-        username
-      }
+      ...RegularPost
     }
     hasMore
   }
 }
-    `;
+    ${RegularPostFragmentDoc}`;
 
 export function usePostsQuery(options: Omit<Urql.UseQueryArgs<PostsQueryVariables>, 'query'>) {
   return Urql.useQuery<PostsQuery, PostsQueryVariables>({ query: PostsDocument, ...options });

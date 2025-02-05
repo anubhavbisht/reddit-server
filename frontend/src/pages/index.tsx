@@ -4,8 +4,10 @@ import { usePostsQuery } from "../graphql/generated/graphql";
 import { convertToIST } from "../utils/dateFormatter";
 import { Layout } from "../components/Layout";
 import NextLink from "next/link";
-import { Box, Heading, Stack, Text, Flex, Button } from "@chakra-ui/react";
+import { Box, Heading, Stack, Text, Flex, Button, IconButton } from "@chakra-ui/react";
+import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { useState } from "react";
+import { Votes } from "../components/Votes";
 
 const Index = () => {
   const [postVariables, setPostVariables] = useState({
@@ -36,12 +38,15 @@ const Index = () => {
         (<Stack spacing={8}>
           {
             data?.posts?.posts.map((p) => (
-              <Box key={p.id} p={5} shadow="md" borderWidth="1px">
-                <Heading fontSize="xl">{p.title}</Heading>
-                <Heading fontSize="md" color="blue.400">{convertToIST(p.createdAt)}</Heading>
-                <Heading fontSize="sm" color="purple.400">Posted by {p.creator.username}</Heading>
-                <Text mt="4">{p.textSnippet}</Text>
-              </Box>
+              <Flex key={p.id} p={5} shadow="md" borderWidth="1px" alignItems={"center"}>
+                <Votes post={p} />
+                <Box>
+                  <Heading fontSize="xl">{p.title}</Heading>
+                  <Heading fontSize="md" color="blue.400">{convertToIST(p.createdAt)}</Heading>
+                  <Heading fontSize="sm" color="purple.400">Posted by {p.creator.username}</Heading>
+                  <Text mt="4">{p.textSnippet}</Text>
+                </Box>
+              </Flex>
             ))
           }
         </Stack>)}
