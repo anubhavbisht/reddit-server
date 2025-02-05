@@ -17,10 +17,13 @@ export const Votes: React.FC<votesProps> = ({ post }) => {
                 icon={<ChevronUpIcon />}
                 size="lg"
                 colorScheme="green"
-                variant="outline"
+                variant={post.currentUserVoteStatus === 1 ? "solid" : "unstyled"}
                 border="1px solid"
                 _hover={{ bg: "green.100" }}
                 onClick={async () => {
+                    if (post.currentUserVoteStatus === 1) {
+                        return
+                    }
                     changeVotingStatus('upvote-loading')
                     await vote({
                         postId: post.id,
@@ -36,10 +39,13 @@ export const Votes: React.FC<votesProps> = ({ post }) => {
                 icon={<ChevronDownIcon />}
                 size="lg"
                 colorScheme="red"
-                variant="outline"
+                variant={post.currentUserVoteStatus === -1 ? "solid" : "unstyled"}
                 border="1px solid"
                 _hover={{ bg: "red.100" }}
                 onClick={async () => {
+                    if (post.currentUserVoteStatus === -1) {
+                        return
+                    }
                     changeVotingStatus('downvote-loading')
                     await vote({
                         postId: post.id,

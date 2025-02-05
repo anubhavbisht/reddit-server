@@ -1,8 +1,9 @@
 import { Exchange, fetchExchange, stringifyVariables } from "urql"
 import { cacheExchange, Cache, QueryInput, Resolver } from '@urql/exchange-graphcache';
-import { LoginMutation, MeQuery, MeDocument, RegisterMutation, LogoutMutation } from "../graphql/generated/graphql"
+import { LoginMutation, MeQuery, MeDocument, RegisterMutation, LogoutMutation, VoteMutationVariables } from "../graphql/generated/graphql"
 import { pipe, tap } from "wonka";
 import Router from "next/router";
+import { gql } from '@urql/core';
 
 function improvedUpdateQuery<Result, Query>(cache: Cache, query: QueryInput, result: any, fn: (r: Result, q: Query) => Query) {
     return cache.updateQuery(query, data => fn(result, data as any) as any)
@@ -66,6 +67,34 @@ export const createClient = (ssrExchange: any) => ({
         },
         updates: {
             Mutation: {
+                vote: (_result, args, cache, info) => {
+                    const { postId, vote } = args as VoteMutationVariables
+                    const data = cache.readFragment(
+                        gql`
+                          fragment _ on Post {
+                            id
+                            points
+                            currentUserVoteStatus
+                          }
+                        `,
+                        { id: postId } as any
+                    )
+                    if (data) {
+                        if (data.currentUserVoteStatus === vote) {
+                            return
+                        }
+                        const newPoints = (data.points as number) + (!data.currentUserVoteStatus ? 1 : 2) * vote
+                        cache.writeFragment(
+                            gql`
+                              fragment __ on Post {
+                                points
+                                currentUserVoteStatus
+                              }
+                            `,
+                            { id: postId, points: newPoints, currentUserVoteStatus: vote }
+                        );
+                    }
+                },
                 createPost: (_result, args, cache, info) => {
                     const allFields = cache.inspectFields('Query')
                     const fieldInfos = allFields.filter((info) => info.fieldName === 'posts');

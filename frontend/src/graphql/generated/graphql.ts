@@ -97,6 +97,7 @@ export type Post = {
   createdAt: Scalars['String']['output'];
   creator: User;
   creatorId: Scalars['Float']['output'];
+  currentUserVoteStatus?: Maybe<Scalars['Float']['output']>;
   id: Scalars['Float']['output'];
   points: Scalars['Float']['output'];
   text: Scalars['String']['output'];
@@ -157,7 +158,7 @@ export type UserResponse = {
 
 export type RegularErrorFragment = { __typename?: 'FieldError', field: string, message: string };
 
-export type RegularPostFragment = { __typename?: 'Post', title: string, textSnippet: string, text: string, points: number, id: number, createdAt: string, creatorId: number, creator: { __typename?: 'User', id: number, email: string, username: string } };
+export type RegularPostFragment = { __typename?: 'Post', title: string, textSnippet: string, text: string, points: number, id: number, createdAt: string, creatorId: number, currentUserVoteStatus?: number | null, creator: { __typename?: 'User', id: number, email: string, username: string } };
 
 export type RegularUserFragment = { __typename?: 'User', id: number, username: string };
 
@@ -231,7 +232,7 @@ export type PostsQueryVariables = Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPosts', hasMore: boolean, posts: Array<{ __typename?: 'Post', title: string, textSnippet: string, text: string, points: number, id: number, createdAt: string, creatorId: number, creator: { __typename?: 'User', id: number, email: string, username: string } }> } };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPosts', hasMore: boolean, posts: Array<{ __typename?: 'Post', title: string, textSnippet: string, text: string, points: number, id: number, createdAt: string, creatorId: number, currentUserVoteStatus?: number | null, creator: { __typename?: 'User', id: number, email: string, username: string } }> } };
 
 export const RegularPostFragmentDoc = gql`
     fragment RegularPost on Post {
@@ -242,6 +243,7 @@ export const RegularPostFragmentDoc = gql`
   id
   createdAt
   creatorId
+  currentUserVoteStatus
   creator {
     id
     email

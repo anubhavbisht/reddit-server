@@ -33,6 +33,9 @@ export class Post extends BaseEntity {
     @OneToMany(() => UserPostVotes, (userPostVotes) => userPostVotes.post)
     userPostVotes: UserPostVotes[];
 
+    @Field(() => Number, { nullable: true })
+    currentUserVoteStatus: number | null
+
     @Field(() => String)
     @CreateDateColumn()
     createdAt: Date;

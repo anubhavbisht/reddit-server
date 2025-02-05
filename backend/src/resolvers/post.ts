@@ -41,7 +41,8 @@ export class PostResolver {
     @Query(() => PaginatedPosts)
     async posts(
         @Arg("limit", () => Int) limit: number,
-        @Arg("cursor", () => String, { nullable: true }) cursor: string | null
+        @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
+        @Ctx() { req }: Context
     ): Promise<PaginatedPosts> {
         const realLimit = Math.min(limit, 50)
         const hasMoreLimit = realLimit + 1
@@ -49,6 +50,7 @@ export class PostResolver {
         await queryRunner.connect()
         const replacements: any[] = []
         replacements.push(hasMoreLimit)
+        replacements.push(req.session.userId)
         if (cursor) {
             replacements.push(new Date(parseInt(cursor)))
         }
@@ -60,10 +62,11 @@ export class PostResolver {
                 'email', "User"."email",
                 'username', "User"."username"
             ) "creator"
+             ${req.session.userId ? `,(select "votes" from "UserPostVotes" where "userId" = $2 and "postId" = "Post"."id") as "currentUserVoteStatus"` : 'null as currentUserVoteStatus'}
         from
             "Post"
             inner join "User" on "User"."id" = "Post"."creatorId"
-        ${cursor ? `where "Post"."createdAt" < $2` : ''}
+        ${cursor ? `where "Post"."createdAt" < $3` : ''}
         order by
             "Post"."createdAt" desc
         limit

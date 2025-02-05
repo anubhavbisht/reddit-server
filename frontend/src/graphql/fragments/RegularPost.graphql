@@ -6,6 +6,7 @@ fragment RegularPost on Post {
   id
   createdAt
   creatorId
+  currentUserVoteStatus
   creator {
     id
     email
