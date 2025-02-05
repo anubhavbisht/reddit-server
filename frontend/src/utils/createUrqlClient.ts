@@ -66,6 +66,13 @@ export const createClient = (ssrExchange: any) => ({
         },
         updates: {
             Mutation: {
+                createPost: (_result, args, cache, info) => {
+                    const allFields = cache.inspectFields('Query')
+                    const fieldInfos = allFields.filter((info) => info.fieldName === 'posts');
+                    fieldInfos.forEach((fi) => {
+                        cache.invalidate('Query', "posts", fi.arguments || {})
+                    });
+                },
                 login: (_result, args, cache, info) => {
                     improvedUpdateQuery<LoginMutation, MeQuery>(cache, { query: MeDocument }, _result, (result, query) => {
                         if (result.login.errors) {
