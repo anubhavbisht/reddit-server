@@ -1,12 +1,13 @@
-import { Box, Button, Flex, Heading, Stack, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, IconButton, Stack, Text } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import { useState } from "react";
 import { Layout } from "../components/Layout";
 import { Votes } from "../components/Votes";
-import { usePostsQuery } from "../graphql/generated/graphql";
+import { useDeletePostMutation, usePostsQuery } from "../graphql/generated/graphql";
 import { createClient } from "../utils/createUrqlClient";
 import { convertToIST } from "../utils/dateFormatter";
+import { DeleteIcon } from "@chakra-ui/icons";
 
 const Index = () => {
   const [postVariables, setPostVariables] = useState({
@@ -16,7 +17,7 @@ const Index = () => {
   const [{ data, fetching }] = usePostsQuery({
     variables: postVariables
   })
-
+  const [_, deletePost] = useDeletePostMutation()
   if (!data && !fetching) {
     return <div>No feeder posts</div>
   }
@@ -36,16 +37,30 @@ const Index = () => {
       {!data && fetching ? <div>Loading posts......</div> :
         (<Stack spacing={8}>
           {
-            data?.posts?.posts.map((p) => (
+            data?.posts?.posts.map((p) => !p ? null : (
               <Flex key={p.id} p={5} shadow="md" borderWidth="1px" alignItems={"center"}>
                 <Votes post={p} />
-                <Box>
+                <Box flex={"1"}>
                   <NextLink href="/post/[postId]" as={`/post/${p.id}`}>
                     <Heading fontSize="xl" cursor="pointer" transition="all 0.3s" _hover={{ textDecoration: "underline" }}>{p.title}</Heading>
                   </NextLink>
                   <Heading fontSize="md" color="blue.400">{convertToIST(p.createdAt)}</Heading>
                   <Heading fontSize="sm" color="purple.400">Posted by {p.creator.username}</Heading>
-                  <Text mt="4">{p.textSnippet}</Text>
+                  <Flex mt="4" align={"center"}>
+                    <Text>{p.textSnippet}</Text>
+                    <IconButton
+                      aria-label="delete-post"
+                      icon={<DeleteIcon />}
+                      size="lg"
+                      colorScheme="red"
+                      ml="auto"
+                      onClick={async () => {
+                        await deletePost({
+                          id: p.id
+                        })
+                      }}
+                    />
+                  </Flex>
                 </Box>
               </Flex>
             ))

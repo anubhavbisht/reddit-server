@@ -4,7 +4,7 @@ import { User } from "./User";
 
 @Entity("UserPostVotes")
 export class UserPostVotes extends BaseEntity {
-    @Column({type: 'int'})
+    @Column({ type: 'int' })
     votes: number
 
     @PrimaryColumn()
@@ -13,9 +13,13 @@ export class UserPostVotes extends BaseEntity {
     @PrimaryColumn()
     postId: number
 
-    @ManyToOne(() => User, (user) => user.userPostVotes)
+    @ManyToOne(() => User, (user) => user.userPostVotes, {
+        onDelete: "CASCADE"
+    })
     user: User
 
-    @ManyToOne(() => Post, (post) => post.userPostVotes)
+    @ManyToOne(() => Post, (post) => post.userPostVotes, {
+        onDelete: "CASCADE"
+    })
     post: Post
 }

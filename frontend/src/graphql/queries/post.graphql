@@ -6,7 +6,6 @@ query Post($postId: Int!) {
     id
     createdAt
     creatorId
-    currentUserVoteStatus
     creator {
       id
       email
