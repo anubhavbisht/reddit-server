@@ -49,16 +49,16 @@ export class PostResolver {
         const queryRunner: QueryRunner = AppDataSource.createQueryRunner()
         await queryRunner.connect()
         const replacements: any[] = [];
-        let index = 1; 
-        replacements.push(hasMoreLimit); 
+        let index = 1;
+        replacements.push(hasMoreLimit);
         let userIdIndex: number | null = null;
         let cursorIndex: number | null = null;
         if (req.session.userId) {
-            userIdIndex = ++index; 
+            userIdIndex = ++index;
             replacements.push(req.session.userId);
         }
         if (cursor) {
-            cursorIndex = ++index; 
+            cursorIndex = ++index;
             replacements.push(new Date(parseInt(cursor)));
         }
         const postQuery = `
@@ -90,7 +90,7 @@ export class PostResolver {
     async post(
         @Arg("id", () => Int) id: number
     ): Promise<Post | null> {
-        const post = await Post.findOne({ where: { id } }) as Post
+        const post = await Post.findOne({ where: { id }, relations: ["creator"] }) as Post
         return post
     }
 

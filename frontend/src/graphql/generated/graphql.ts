@@ -224,7 +224,7 @@ export type PostQueryVariables = Exact<{
 }>;
 
 
-export type PostQuery = { __typename?: 'Query', post?: { __typename?: 'Post', id: number, title: string, text: string, points: number, creatorId: number, createdAt: string, updatedAt: string } | null };
+export type PostQuery = { __typename?: 'Query', post?: { __typename?: 'Post', title: string, text: string, points: number, id: number, createdAt: string, creatorId: number, currentUserVoteStatus?: number | null, creator: { __typename?: 'User', id: number, email: string, username: string } } | null };
 
 export type PostsQueryVariables = Exact<{
   limit: Scalars['Int']['input'];
@@ -374,13 +374,18 @@ export function useMeQuery(options?: Omit<Urql.UseQueryArgs<MeQueryVariables>, '
 export const PostDocument = gql`
     query Post($postId: Int!) {
   post(id: $postId) {
-    id
     title
     text
     points
-    creatorId
+    id
     createdAt
-    updatedAt
+    creatorId
+    currentUserVoteStatus
+    creator {
+      id
+      email
+      username
+    }
   }
 }
     `;

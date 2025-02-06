@@ -1,11 +1,16 @@
 query Post($postId: Int!) {
   post(id: $postId) {
-    id
     title
     text
     points
-    creatorId
+    id
     createdAt
-    updatedAt
+    creatorId
+    currentUserVoteStatus
+    creator {
+      id
+      email
+      username
+    }
   }
 }
