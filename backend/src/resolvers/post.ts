@@ -48,30 +48,35 @@ export class PostResolver {
         const hasMoreLimit = realLimit + 1
         const queryRunner: QueryRunner = AppDataSource.createQueryRunner()
         await queryRunner.connect()
-        const replacements: any[] = []
-        replacements.push(hasMoreLimit)
-        replacements.push(req.session.userId)
+        const replacements: any[] = [];
+        let index = 1; 
+        replacements.push(hasMoreLimit); 
+        let userIdIndex: number | null = null;
+        let cursorIndex: number | null = null;
+        if (req.session.userId) {
+            userIdIndex = ++index; 
+            replacements.push(req.session.userId);
+        }
         if (cursor) {
-            replacements.push(new Date(parseInt(cursor)))
+            cursorIndex = ++index; 
+            replacements.push(new Date(parseInt(cursor)));
         }
         const postQuery = `
-        select
+        SELECT
             "Post".*,
             json_build_object (
                 'id', "User"."id",
                 'email', "User"."email",
                 'username', "User"."username"
-            ) "creator"
-             ${req.session.userId ? `,(select "votes" from "UserPostVotes" where "userId" = $2 and "postId" = "Post"."id") as "currentUserVoteStatus"` : 'null as currentUserVoteStatus'}
-        from
-            "Post"
-            inner join "User" on "User"."id" = "Post"."creatorId"
-        ${cursor ? `where "Post"."createdAt" < $3` : ''}
-        order by
-            "Post"."createdAt" desc
-        limit
-            $1
-        `
+            ) AS "creator"
+            ${userIdIndex ? `, (SELECT "votes" FROM "UserPostVotes" WHERE "userId" = $${userIdIndex} AND "postId" = "Post"."id") AS "currentUserVoteStatus"` : ', NULL AS "currentUserVoteStatus"'}
+        FROM "Post"
+        INNER JOIN "User" ON "User"."id" = "Post"."creatorId"
+        ${cursorIndex ? `WHERE "Post"."createdAt" < $${cursorIndex}` : ''}
+        ORDER BY "Post"."createdAt" DESC
+        LIMIT $1
+        `;
+
         const posts = await queryRunner.query(postQuery, replacements);
 
         await queryRunner.release()
