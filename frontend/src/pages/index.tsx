@@ -28,7 +28,6 @@ const Index = () => {
         <Heading fontSize="2xl">All Posts</Heading>
         <NextLink href="/create-post" passHref>
           <Button
-            as="a"
             size="lg"
             bgGradient="linear(to-r, purple.500, pink.500)"
             color="white"
