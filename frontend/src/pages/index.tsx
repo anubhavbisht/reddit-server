@@ -7,7 +7,7 @@ import { Votes } from "../components/Votes";
 import { useDeletePostMutation, usePostsQuery } from "../graphql/generated/graphql";
 import { createClient } from "../utils/createUrqlClient";
 import { convertToIST } from "../utils/dateFormatter";
-import { DeleteIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 
 const Index = () => {
   const [postVariables, setPostVariables] = useState({
@@ -26,19 +26,33 @@ const Index = () => {
     <Layout>
       <Flex mb="5" align="center" justifyContent={"space-between"}>
         <Heading fontSize="2xl">All Posts</Heading>
-        <NextLink href="/create-post">
-          <Text color="purple.700" fontSize="md" fontWeight="bold" cursor="pointer" transition="all 0.3s"
-            _hover={{ color: "purple.500", textDecoration: "underline" }}
-            _active={{ color: "purple.900" }}>
-            🆕 Create Post ✍🏼
-          </Text>
+        <NextLink href="/create-post" passHref>
+          <Button
+            as="a"
+            size="lg"
+            bgGradient="linear(to-r, purple.500, pink.500)"
+            color="white"
+            fontWeight="bold"
+            leftIcon={<AddIcon />}
+            _hover={{
+              bgGradient: "linear(to-r, purple.600, pink.600)",
+              transform: "scale(1.05)",
+              boxShadow: "lg",
+            }}
+            _active={{
+              transform: "scale(0.95)",
+            }}
+            transition="all 0.2s ease-in-out"
+          >
+            Create Post ✍🏼
+          </Button>
         </NextLink>
       </Flex>
       {!data && fetching ? <div>Loading posts......</div> :
         (<Stack spacing={8}>
           {
             data?.posts?.posts.map((p) => !p ? null : (
-              <Flex key={p.id} p={5} shadow="md" borderWidth="1px" alignItems={"center"}>
+              <Flex key={p.id} p={5} shadow="md" borderWidth="1px" alignItems={"center"} backgroundColor="honeydew">
                 <Votes post={p} />
                 <Box flex={"1"}>
                   <NextLink href="/post/[postId]" as={`/post/${p.id}`}>
@@ -66,12 +80,37 @@ const Index = () => {
             ))
           }
         </Stack>)}
-      {data && data.posts.hasMore ? <Flex><Button onClick={() => {
-        setPostVariables({
-          limit: postVariables.limit,
-          cursor: data?.posts?.posts[data.posts.posts.length - 1]?.createdAt
-        })
-      }} isLoading={fetching} m="auto" my="8">Load more</Button></Flex> : null}
+      {data && data.posts.hasMore ? <Flex><Button
+        onClick={() => {
+          setPostVariables({
+            limit: postVariables.limit,
+            cursor: data?.posts?.posts[data.posts.posts.length - 1]?.createdAt,
+          });
+        }}
+        isLoading={fetching}
+        size="lg"
+        variant="solid"
+        bgGradient="linear(to-r, purple.500, pink.500)"
+        color="white"
+        fontWeight="bold"
+        borderRadius="full"
+        px={6}
+        py={3}
+        _hover={{
+          bgGradient: "linear(to-r, purple.600, pink.600)",
+          transform: "scale(1.05)",
+          boxShadow: "xl",
+        }}
+        _active={{
+          transform: "scale(0.95)",
+        }}
+        transition="all 0.2s ease-in-out"
+        m="auto"
+        my="8"
+      >
+        🔄 Load More
+      </Button>
+      </Flex> : null}
     </Layout>
   )
 };
