@@ -14,6 +14,8 @@ import { RequestWithSession } from "./types";
 import { Response } from "express";
 import cors from 'cors'
 import { AppDataSource } from "./database/orm.config";
+import { userDataLoader } from "./resolvers/dataloaders/userDataLoader";
+import { voteStatusLoader } from "./resolvers/dataloaders/voteStatusLoader";
 
 dotenv.config();
 
@@ -67,7 +69,7 @@ const main = async () => {
             validate: false
         }),
         context: ({ req, res }): Context => {
-            return { req: req as unknown as RequestWithSession, res: res as unknown as Response, redis: redisClient };
+            return { req: req as unknown as RequestWithSession, res: res as unknown as Response, redis: redisClient, userLoader: userDataLoader(), userVoteLoader: voteStatusLoader() };
         },
     })
     await apolloServer.start()

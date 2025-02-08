@@ -6,6 +6,7 @@ import { validatePost } from "./validations/validateCreatePostInputs";
 import { AppDataSource } from "../database/orm.config";
 import { QueryRunner } from "typeorm";
 import { UserPostVotes } from "../database/entities/UserPostVotes";
+import { User } from "../database/entities/User";
 
 @InputType()
 export class PostInput {
@@ -40,11 +41,23 @@ export class PostResolver {
         return post.text.slice(0, 100) + '....'
     }
 
+    @FieldResolver(() => User)
+    async creator(@Root() post: Post,
+        @Ctx() { userLoader }: Context): Promise<User> {
+        return userLoader.load(post.creatorId)
+    }
+
+    @FieldResolver(() => Number, { nullable: true })
+    async currentUserVoteStatus(@Root() post: Post,
+        @Ctx() { req, userVoteLoader }: Context): Promise<Number | null> {
+        if (!req.session.userId) return null;
+        return userVoteLoader.load({ userId: req.session.userId, postId: post.id });
+    }
+
     @Query(() => PaginatedPosts)
     async posts(
         @Arg("limit", () => Int) limit: number,
         @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
-        @Ctx() { req }: Context
     ): Promise<PaginatedPosts> {
         const realLimit = Math.min(limit, 50)
         const hasMoreLimit = realLimit + 1
@@ -53,27 +66,15 @@ export class PostResolver {
         const replacements: any[] = [];
         let index = 1;
         replacements.push(hasMoreLimit);
-        let userIdIndex: number | null = null;
         let cursorIndex: number | null = null;
-        if (req.session.userId) {
-            userIdIndex = ++index;
-            replacements.push(req.session.userId);
-        }
         if (cursor) {
             cursorIndex = ++index;
             replacements.push(new Date(parseInt(cursor)));
         }
         const postQuery = `
         SELECT
-            "Post".*,
-            json_build_object (
-                'id', "User"."id",
-                'email', "User"."email",
-                'username', "User"."username"
-            ) AS "creator"
-            ${userIdIndex ? `, (SELECT "votes" FROM "UserPostVotes" WHERE "userId" = $${userIdIndex} AND "postId" = "Post"."id") AS "currentUserVoteStatus"` : ', NULL AS "currentUserVoteStatus"'}
+            "Post".*
         FROM "Post"
-        INNER JOIN "User" ON "User"."id" = "Post"."creatorId"
         ${cursorIndex ? `WHERE "Post"."createdAt" < $${cursorIndex}` : ''}
         ORDER BY "Post"."createdAt" DESC
         LIMIT $1
@@ -92,7 +93,7 @@ export class PostResolver {
     async post(
         @Arg("id", () => Int) id: number
     ): Promise<Post | null> {
-        const post = await Post.findOne({ where: { id }, relations: ["creator"] }) as Post
+        const post = await Post.findOne({ where: { id } }) as Post
         return post
     }
 
