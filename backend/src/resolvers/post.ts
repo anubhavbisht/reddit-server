@@ -9,6 +9,8 @@ import { UserPostVotes } from "../database/entities/UserPostVotes";
 
 @InputType()
 export class PostInput {
+    @Field({ nullable: true })
+    id?: number
     @Field()
     text: string
     @Field()
@@ -112,20 +114,32 @@ export class PostResolver {
         };
     }
 
-    @Mutation(() => Post, { nullable: true })
+
+    @Mutation(() => PostResponse, { nullable: true })
+    @UseMiddleware(isUserAuthenticated)
     async updatePost(
-        @Arg("id", () => Int) id: number,
-        @Arg("title", () => String, { nullable: true }) title: string
-    ): Promise<Post | null> {
-        const post = await Post.findOne({ where: { id } });
-        if (!post) {
+        @Arg("options", () => PostInput) options: PostInput,
+        @Ctx() { req }: Context
+    ): Promise<PostResponse | null> {
+        const errors = validatePost(options)
+        if (errors) {
+            return { errors };
+        }
+        const { id, text, title } = options
+        const updatedPost = await Post.findOne({ where: { id, creatorId: req.session.userId } });
+        if (!updatedPost) {
             return null;
         }
         if (title !== undefined) {
-            post.title = title;
-            await post.save();
+            updatedPost.title = title;
         }
-        return post;
+        if (text !== undefined) {
+            updatedPost.text = text
+        }
+        await updatedPost.save();
+        return {
+            post: updatedPost
+        };
     }
 
     @Mutation(() => Boolean)

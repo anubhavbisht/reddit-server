@@ -6,18 +6,19 @@ type FormInputFieldProps = {
     label: string;
     name: string;
     isTextArea?: boolean;
+    size?: string
 } & Omit<InputProps, "size"> & Omit<TextareaProps, "size">;
 
-export const FormInputField: React.FC<FormInputFieldProps> = ({ isTextArea = false, label, ...props }) => {
+export const FormInputField: React.FC<FormInputFieldProps> = ({ size, isTextArea = false, label, ...props }) => {
     const [field, { error }] = useField(props.name);
 
     return (
         <FormControl isInvalid={!!error}>
             <FormLabel fontWeight="bold" color="black" htmlFor={field.name}>{label}</FormLabel>
             {isTextArea ? (
-                <Textarea {...field} {...(props as TextareaProps)} id={field.name} />
+                <Textarea size={size} {...field} {...(props as TextareaProps)} id={field.name} />
             ) : (
-                <Input {...field} {...(props as InputProps)} id={field.name} />
+                <Input size={size} {...field} {...(props as InputProps)} id={field.name} />
             )}
             {error && <FormErrorMessage>{error}</FormErrorMessage>}
         </FormControl>

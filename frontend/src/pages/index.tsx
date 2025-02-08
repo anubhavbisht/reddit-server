@@ -1,13 +1,14 @@
-import { Box, Button, Flex, Heading, IconButton, Stack, Text } from "@chakra-ui/react";
+import { AddIcon } from "@chakra-ui/icons";
+import { Box, Button, Flex, Heading, Stack, Text } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
 import { useState } from "react";
 import { Layout } from "../components/Layout";
+import { UserAction } from "../components/UserAction";
 import { Votes } from "../components/Votes";
-import { useDeletePostMutation, usePostsQuery } from "../graphql/generated/graphql";
+import { usePostsQuery } from "../graphql/generated/graphql";
 import { createClient } from "../utils/createUrqlClient";
 import { convertToIST } from "../utils/dateFormatter";
-import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 
 const Index = () => {
   const [postVariables, setPostVariables] = useState({
@@ -17,7 +18,6 @@ const Index = () => {
   const [{ data, fetching }] = usePostsQuery({
     variables: postVariables
   })
-  const [_, deletePost] = useDeletePostMutation()
   if (!data && !fetching) {
     return <div>No feeder posts</div>
   }
@@ -61,18 +61,7 @@ const Index = () => {
                   <Heading fontSize="sm" color="purple.400">Posted by {p.creator.username}</Heading>
                   <Flex mt="4" align={"center"}>
                     <Text>{p.textSnippet}</Text>
-                    <IconButton
-                      aria-label="delete-post"
-                      icon={<DeleteIcon />}
-                      size="lg"
-                      colorScheme="red"
-                      ml="auto"
-                      onClick={async () => {
-                        await deletePost({
-                          id: p.id
-                        })
-                      }}
-                    />
+                    <UserAction postId={p.id} creatorId={p.creatorId} />
                   </Flex>
                 </Box>
               </Flex>

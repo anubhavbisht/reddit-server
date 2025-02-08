@@ -1,0 +1,13 @@
+mutation UpdatePost($options: PostInput!) {
+  updatePost(options: $options) {
+    errors {
+      ...RegularError
+    }
+    post {
+      id
+      title
+      text
+      textSnippet
+    }
+  }
+}
