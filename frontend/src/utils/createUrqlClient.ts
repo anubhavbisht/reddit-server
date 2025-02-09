@@ -57,6 +57,14 @@ const errorExchange: Exchange = ({ forward }) => (ops$) => {
     );
 };
 
+const invalidateCache = (cache: Cache) => {
+    const allFields = cache.inspectFields('Query')
+    const fieldInfos = allFields.filter((info) => info.fieldName === 'posts');
+    fieldInfos.forEach((fi) => {
+        cache.invalidate('Query', "posts", fi.arguments || {})
+    });
+}
+
 export const createClient = (ssrExchange: any) => ({
     url: 'http://localhost:8000/graphql',
     exchanges: [cacheExchange({
@@ -99,11 +107,7 @@ export const createClient = (ssrExchange: any) => ({
                     }
                 },
                 createPost: (_result, args, cache, info) => {
-                    const allFields = cache.inspectFields('Query')
-                    const fieldInfos = allFields.filter((info) => info.fieldName === 'posts');
-                    fieldInfos.forEach((fi) => {
-                        cache.invalidate('Query', "posts", fi.arguments || {})
-                    });
+                    invalidateCache(cache)
                 },
                 login: (_result, args, cache, info) => {
                     improvedUpdateQuery<LoginMutation, MeQuery>(cache, { query: MeDocument }, _result, (result, query) => {
@@ -115,6 +119,7 @@ export const createClient = (ssrExchange: any) => ({
                             }
                         }
                     })
+                    invalidateCache(cache)
                 },
                 register: (_result, args, cache, info) => {
                     improvedUpdateQuery<RegisterMutation, MeQuery>(cache, { query: MeDocument }, _result, (result, query) => {
